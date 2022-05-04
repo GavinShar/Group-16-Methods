@@ -1,51 +1,37 @@
 import mysql.connector
 import sys
+import random
+from history import History
 
 class shoppingCart:
-    ## Connects to the database
-    try:
-        connection = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="") ## Needs Database name
-        print("Successful connection.")
-
-    except:
-        print("Failed connection.")
-
-    ## Creates the cart table
-        cursor = connection.cursor()
-        cursor.execute("CREATE TABLE cart (ID int NOT NULL, Title varchar(25), Price int)")
-        connection.commit()
-
     ## Prints the current items in the table
-    def viewCart():
-        query = "SELECT * FROM cart WHERE Title=%s"
-        data = getTitle()
-        cursor = connection.cursor()
-        cursor.execute(query, data)
-        connection.commit()
+    def viewCart(connection, cursor, user_id):
+        cursor.execute("SELECT ISBN FROM cart WHERE userID = '" + user_id + "'")
+        result = cursor.fetchall()
+        print("Items in your cart:")
+        for x in result:
+            print("ISBN:", x[0])
 
     ## Emties the cart and records the contents in order history
-    def checkoutCart():
-        ## Needs to record contents of cart
-        cursor = connection.cursor()
-        cursor.execute("DROP TABLE cart")
+    def checkoutCart(connection, cursor, user_id):
+        #Add items in user's cart to user's purchase history
+        cursor.execute("SELECT ISBN FROM cart WHERE userID = '" + user_id + "'")
+        result = cursor.fetchall()
+        for x in result:
+            History.addTransac(connection, cursor, user_id, x[0])
+            cursor.execute("UPDATE item SET quantity = (quantity - 1) WHERE ISBN = '" + x[0] + "'")
+            connection.commit()
+
+        cursor.execute("DELETE FROM cart WHERE userID='" + user_id + "'")
         connection.commit()
 
     ## Adds queried item to cart
-    def addToCart():
-        query = "INSERT INTO cart (ID, Title, Price) Values (%s, %s, %s)"
-        data = (getID(), getTitle(), getPrice())
-        cursor = connection.cursor()
-        cursor.execute(query, data)
+    def addToCart(connection, cursor, user_id, item):
+        randID = random.randint(1, 1000)
+        cursor.execute("INSERT INTO cart (id, userID, ISBN) VALUES (" + str(randID) + ", '" + user_id + "', '" + item + "')")
         connection.commit()
 
     ## Removes queried item from cart
-    def removeFromCart():
-        query = "DELETE FROM cart WHERE Title=%s"
-        data = getTitle()
-        cursor = connection.cursor(query, data)
-        cursor.execute()
+    def removeFromCart(connection, cursor, user_id, item):
+        cursor.execute("DELETE FROM cart WHERE userID='" + user_id + "' AND ISBN='" + item + "'")
         connection.commit()

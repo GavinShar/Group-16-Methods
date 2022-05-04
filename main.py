@@ -1,4 +1,28 @@
-#put classes here
+from history import History
+from shoppingCart import shoppingCart
+import mysql.connector
+import sys
+
+## attempts to connect to the database
+try:
+    myConnection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="methods_project"
+    )
+
+    print("Successful connection.")
+
+except:
+    print("Failed connection.")
+
+    ## exits the program if unsuccessful
+    sys.exit()
+
+## cursor to send queries through
+myCursor = myConnection.cursor()
+
 
 is_not_logged = True
 while True:
@@ -82,8 +106,8 @@ while True:
             while True:
                 try:
                     user_in = int(input("1.Go Back\n2.View Cart\n3.Remove Item from Cart"
-                                  "\n4.Checkout\n5.Add Item to Cart\n"))
-                    if 1 > user_in or 5 < user_in:
+                                  "\n4.Checkout\n"))
+                    if 1 > user_in or 4 < user_in:
                         print("This is not a valid input please try again.")
                         continue
                 except ValueError:
@@ -92,21 +116,32 @@ while True:
                 if user_in == 1:
                     break
                 if user_in == 2:
-                    print("Placeholder View Cart")
+                    #print("Placeholder View Cart")
+                    shoppingCart.viewCart(myConnection, myCursor, user_id)
                 if user_in == 3:
-                    print("Placeholder Remove Item from Cart")
+                    #print("Placeholder Remove Item from Cart")
+                    user_in = str(input("Enter the ISBN for the book you would like to remove from your cart: "))
+                    shoppingCart.removeFromCart(myConnection, myCursor, user_id, user_in)
                 if user_in == 4:
-                    print("Placeholder Checkout")
-                if user_in == 5:
-                    print("Placeholder Add Item to Cart")
+                    #print("Placeholder Checkout")
+                    shoppingCart.checkoutCart(myConnection, myCursor, user_id)
+                    break
 
         if user_in == 3:                        #inventory loop
-            print("Placeholder Inventory")
+            #print("Placeholder Inventory")
+            myCursor.execute("SELECT * FROM item")
+            result = myCursor.fetchall()
+            for x in result:
+                print()
+                print("ISBN: ", x[0])
+                print("Title: ", x[1])
+                print("Author: ", x[2])
+                print("Quantity: ", x[4])
+                print("Price: ", x[5])
             while True:
                 try:
-                    user_in = int(input("1.Go Back\n2.Cat1\n3.Cat2"
-                                  "\n4.Cat3\n5.Cat4\n"))
-                    if 1 > user_in or 5 < user_in:
+                    user_in = int(input("1.Go Back\n2.Add book to cart\n"))
+                    if 1 > user_in or 2 < user_in:
                         print("This is not a valid input please try again.")
                         continue
                 except ValueError:
@@ -115,13 +150,13 @@ while True:
                 if user_in == 1:
                     break
                 if user_in == 2:
-                    print("Placeholder Cat1")
-                if user_in == 3:
-                    print("Placeholder Cat2")
-                if user_in == 4:
-                    print("Placeholder Cat3")
-                if user_in == 5:
-                    print("Placeholder Cat4")
+                    user_in = str(input("Enter the ISBN for the book you would like to add to your cart: "))
+                    shoppingCart.addToCart(myConnection, myCursor, user_id, user_in)
+                    break
         if user_in == 4: #exit
             break
     if user_in == 4: break
+
+## close the cursor and connection once you're done
+myCursor.close()
+myConnection.close()
