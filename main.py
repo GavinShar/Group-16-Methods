@@ -1,5 +1,6 @@
 from history import History
 from shoppingCart import shoppingCart
+from user_info import user_info
 import mysql.connector
 import sys
 
@@ -25,6 +26,7 @@ myCursor = myConnection.cursor()
 
 
 is_not_logged = True
+deleted = False
 while True:
     user_in = 0
     while is_not_logged: #have this change to false after login
@@ -40,29 +42,41 @@ while True:
             continue
 
     if user_in == 1:
-        print("Placeholder login")
-        is_not_logged = False
+        while is_not_logged:
+            user_id = str(input("User ID: "))
+            user_in = str(input("Password: "))
+            is_not_logged = user_info.user_login(myConnection, myCursor, user_id, user_in)
     if user_in == 2:
-        print("Placeholder Create Account")
+        user_id = str(input("Enter user ID: "))
+        passwd = str(input("Enter password: "))
+        cardNum = str(input("Enter credit card number: "))
+        cardExp = str(input("Enter card expiration date (MM/YY): "))
+        cardCVV = str(input("Enter card CVV: "))
+        address = str(input("Enter street address: "))
+        city = str(input("Enter city: "))
+        state = str(input("Enter state: "))
+        usrZip = str(input("Enter zip: "))
+        user_info.create_user(myConnection, myCursor, user_id, passwd, cardNum, cardExp, cardCVV, address, city, state, usrZip)
         is_not_logged = False
     if user_in == 3:
         break
                             #after login
     while True:
+        if deleted:
+            break
         try:
-            user_in = int(input("1.User Info\n2.Cart\n3.Inventory\n4.Exit\n"))
+            user_in = int(input("1.Edit user\n2.Cart\n3.Inventory\n4.Exit\n"))
             if 1 > user_in or 4 < user_in:
                 print("This is not a valid input please try again.")
                 continue
         except ValueError:
             print("This is not a valid input please try again.")
             continue
-        if user_in == 1:                    #user login loop
-            print("Placeholder User Info")
+        if user_in == 1:      #edit user loop
             while True:
                 try:
                     user_in = int(input("1.Go Back\n2.Login Details\n3.Shipping Information"
-                                        "\n4.Payment Information\n5.Order History\n6.Edit User Information\n"))
+                                        "\n4.Payment Information\n5.Order History\n6.Delete account\n"))
                     if 1 > user_in or 6 < user_in:
                         print("This is not a valid input please try again.")
                         continue
@@ -72,37 +86,33 @@ while True:
                 if user_in == 1:
                     break
                 if user_in == 2:
-                    print("Placeholder Edit Login")
+                    user_in = str(input("Enter new password: "))
+                    user_info.edit_login(myConnection, myCursor, user_id, user_in)
                 if user_in == 3:
-                    print("Placeholder Edit Payment Info")
+                    address = str(input("Enter new street address: "))
+                    city = str(input("Enter new city: "))
+                    state = str(input("Enter new state: "))
+                    usrZip = str(input("Enter new zip: "))
+                    user_info.edit_shipping(myConnection, myCursor, user_id, address, city, state, usrZip)
                 if user_in == 4:
-                    print("Placeholder Edit Shipping")
+                    cardNum = str(input("Enter new credit card number: "))
+                    cardExp = str(input("Enter new card expiration date (MM/YY): "))
+                    cardCVV = str(input("Enter new card CVV: "))
+                    user_info.edit_payment(myConnection, myCursor, user_id, cardNum, cardExp, cardCVV)
                 if user_in == 5:
-                    print("Placeholder Delete Account")
+                    History.viewHistory(myConnection, myCursor, user_id)
                 if user_in == 6:
-                    print("Placeholder Edit User Info")
-                    while True:                         #edit user info loop
-                        try:
-                            user_in = int(input("1.Go Back\n2.Edit Login\n3.Edit Payment Info"
-                                                "\n4.Edit Shipping Info\n5.Delete Account\n"))
-                            if 1 > user_in or 5 < user_in:
-                                print("This is not a valid input please try again.")
-                                continue
-                        except ValueError:
-                            print("This is not a valid input please try again.")
-                            continue
-                        if user_in == 1:
-                            break
-                        if user_in == 2:
-                            print("Placeholder Edit Login")
-                        if user_in == 3:
-                            print("Placeholder Edit Payment Info")
-                        if user_in == 4:
-                            print("Placeholder Edit Shipping")
-                        if user_in == 5:
-                            print("Placeholder Delete Account")
+                    user_in = str(input("Are you sure you want to delete your account? (y/n): "))
+                    if user_in == 'y':
+                        user_info.delete_account(myConnection, myCursor, user_id)
+                        print("Account deleted; exiting program")
+                        myCursor.close()
+                        myConnection.close()
+                        sys.exit()
+                    else:
+                        print("Account deletion aborted")
+                    
         if user_in == 2:                    #cart info loop
-            print("Placeholder Cart Info")
             while True:
                 try:
                     user_in = int(input("1.Go Back\n2.View Cart\n3.Remove Item from Cart"
@@ -125,7 +135,6 @@ while True:
                 if user_in == 4:
                     #print("Placeholder Checkout")
                     shoppingCart.checkoutCart(myConnection, myCursor, user_id)
-                    break
 
         if user_in == 3:                        #inventory loop
             #print("Placeholder Inventory")

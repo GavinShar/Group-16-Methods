@@ -1,99 +1,92 @@
 import mysql.connector
 import sys
+from history import History
 
 class user_info:
 
-        ## Connects to the database
-    try:
-        connection = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="") ## Needs Database name
-        print("Successful connection.")
+#    def order_history_add (self, id, transacDate, user_id, isbn):
 
-    except:
-        print("Failed connection.")
+#        query = "INSERT INTO history (id, transacDate, userID, ISBN) Values (%s, %s, %s, %s)"
+#        data = id, transacDate, user_id, isbn
+#        cursor = connection.cursor()
+#        cursor.execute(query, data)
+#        connection.commit()
 
+#    def order_history_view (self):
 
-    def order_history_add (self, id, transacDate, user_id, isbn):
+#        query = "SELECT * FROM history"
+#        cursor = connection.cursor()
+#        cursor.execute(query)
+#        result = cursor.fetchall()
 
-        query = "INSERT INTO history (id, transacDate, userID, ISBN) Values (%s, %s, %s, %s)"
-        data = id, transacDate, user_id, isbn
-        cursor = connection.cursor()
-        cursor.execute(query, data)
-        connection.commit()
+#        connection.commit()
 
-    def order_history_view (self):
+    def user_login(connection, cursor, userID, userPass):
 
-        query = "SELECT * FROM history"
-        cursor = connection.cursor()
+        query = "SELECT userPass FROM user_info WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
         cursor.execute(query)
         result = cursor.fetchall()
 
-        connection.commit()
-
-    def user_login(self, userID):
-
-        query = "SELECT userPass FROM user_info WHERE userID = %s"
-        cursor = connection.cursor()
-        cursor.execute(query, userID)
-        result = cursor.fetchall()
-
-        if (result != userPass):
+        if (result[0][0] != userPass):
             print ("Invalid Password")
+            return True
+        return False
 
-    def edit_login(self, userID, userPass):
+    def edit_login(connection, cursor, userID, userPass):
 
-        query = "UPDATE user_info SET userPass = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, userPass, userID)
+        query = "UPDATE user_info SET userPass = '"+userPass+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()
 
-    def edit_payment (self, userID, cardNum, cardExp, cardCVV):
+    def edit_payment (connection, cursor, userID, cardNum, cardExp, cardCVV):
 
-        query = "UPDATE user_info SET cardNum = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, cardNum, userID)
+        query = "UPDATE user_info SET cardNum = '"+cardNum+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()
-        query = "UPDATE user_info SET cardExp = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, cardExp, userID)
+        query = "UPDATE user_info SET cardExp = '"+cardExp+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()
-        query = "UPDATE user_info SET cardCVV = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, cardCVV, userID)
-        connection.commit()
-
-    def edit_shipping(self, userID, address, city, state, zip):
-
-        query = "UPDATE user_info SET address = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, address, userID)
-        connection.commit()
-        query = "UPDATE user_info SET city = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, city, userID)
-        connection.commit()
-        query = "UPDATE user_info SET cardNum = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, state, userID)
-        connection.commit()
-        query = "UPDATE user_info SET zip = '%s' WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, zip, userID)
+        query = "UPDATE user_info SET cardCVV = '"+cardCVV+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()
 
-    def delete_account (self, userID):
+    def edit_shipping(connection, cursor, userID, address, city, state, zip):
 
-        query = "DELETE FROM user_info WHERE userID = '%s'"
-        cursor = connection.cursor()
-        cursor.execute(query, userID)
+        query = "UPDATE user_info SET address = '"+address+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        query = "UPDATE user_info SET city = '"+city+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        query = "UPDATE user_info SET cardNum = '"+state+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        query = "UPDATE user_info SET zip = '"+zip+"' WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()
 
-    def create_user (self, userID, userPass, cardNum, cardExp, cardCVV, address, city, state, zip):
+    def delete_account (connection, cursor, userID):
 
-        query = "INSERT INTO user_info (userID, userPass, cardNum, cardExp, cardCVV, address, city, state, zip) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor = connection.cursor()
-        cursor.execute(query, userID, userPass, cardNum, cardExp, cardCVV, address, city, state, zip)
+        cursor.execute("DELETE FROM cart WHERE userID='" + userID + "'")
+        connection.commit()
+        History.clearHistory(connection, cursor, userID)
+        query = "DELETE FROM user_info WHERE userID = '"+userID+"'"
+        #cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+
+    def create_user (connection, cursor, userID, userPass, cardNum, cardExp, cardCVV, address, city, state, zip):
+
+        query = "INSERT INTO user_info (userID, userPass, cardNum, cardExp, cardCVV, address, city, state, zip) VALUES ('"+userID+"', '"+userPass+"', '"+cardNum+"', '"+cardExp+"', "+cardCVV+", '"+address+"', '"+city+"', '"+state+"', '"+zip+"')"
+        #cursor = connection.cursor()
+        cursor.execute(query)
         connection.commit()

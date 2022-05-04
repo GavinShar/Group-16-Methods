@@ -21,7 +21,7 @@ class History:
                 theCursor.execute(myString)
                 theConnection.commit()
                 #verification of insertion for testing purposes
-                print(theCursor.rowcount, "record inserted")
+                #print(theCursor.rowcount, "record inserted")
                 break
 
 
@@ -40,4 +40,4 @@ class History:
         theCursor.execute(myString)
         theConnection.commit()
         #verification of deletion for testing purposes
-        print(theCursor.rowcount, "record(s) deleted.")
+        #print(theCursor.rowcount, "record(s) deleted.")
